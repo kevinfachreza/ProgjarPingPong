@@ -1,4 +1,4 @@
-import sys, pygame, time
+import sys, pygame, time, msvcrt
 pygame.init()
 location = [0, 0]
 size = width, height = 1200, 650
@@ -19,9 +19,11 @@ myfont = pygame.font.Font("assets/HighlandGothicFLF.ttf", 50)
 
 screen = pygame.display.set_mode(size)
 
-ball = pygame.image.load("assets/ball.png")
+
+ball = pygame.image.load("assets/bola.png")
+ball = pygame.transform.scale(ball, (30, 30))
 ballrect = ball.get_rect()
-ballrect.move_ip(400, 350)
+ballrect.move_ip(width/2, height/2)
 
 #CreateGoal1
 goal1 = pygame.image.load("assets/goal.png")
@@ -57,32 +59,45 @@ enemy = pygame.transform.scale(enemy, (28, 150))
 enemy_rect = enemy.get_rect()
 enemy_rect = enemy_rect.move(width-(3*player_offset),0)
 
-
+#initial score
+score1_val = 1
+score2_val = 2
+id = ""
+char = ""
 
 
 while 1:
     player_posY = str(player_rect.move(location)).split(',')[1]
     player_posY = int(player_posY)
 
+    ball_posX = str(ballrect.move(speed)).split(',')[0]
+    ball_posY = str(ballrect.move(location)).split(',')[1]
+    ball_posX = str(ball_posX).split('(')[1]
+    ball_posX = int(ball_posX)
+    print ball_posX, ball_posY
+
     #TIME MATCH
     seconds = divmod(pygame.time.get_ticks(),1000)
     timeMatch = myfont.render(str(seconds[0]), 1, BLACK)
 
+    if score1_val == 10:
+        win = 1
+    elif score2_val == 10:
+        win = 2
     #SCORE
-    score1_val = 1
-    score2_val = 2
+    if(ball_posX < -2 ):
+        ballrect.move_ip(width/2, (height/2)-int(ball_posY) )
+        player_rect.move_ip(0,0)
+        enemy_rect.move_ip(0,0)
+        score2_val = score2_val + 1
+
+
     score1 = myfont.render(str(score1_val), 1, WHITE)
     score2 = myfont.render(str(score2_val), 1, WHITE)
 
     #EVENT KEY DWN AND UP
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                print player_posY
-            if event.key == pygame.K_UP:
-                print player_posY
         if event.type == pygame.KEYUP:
             #print "berenti oi "+ str(location[1])
             location[1] = 0
@@ -91,13 +106,11 @@ while 1:
     #EVENT KEY PRESSED BUFFERED
     keys = pygame.key.get_pressed()
     if keys[pygame.K_DOWN]:
-        print player_posY
         if player_posY <= 500 :
             location[1] = 1
         else:
             location[1] = 0
     if keys[pygame.K_UP]:
-        print player_posY
         if player_posY >= 0:
             location[1] = -1
         else:
@@ -108,7 +121,8 @@ while 1:
     ballrect = ballrect.move(speed)
 
     #COLLISION
-    if ballrect.colliderect(player_rect) or  ballrect.colliderect(enemy_rect) or ballrect.right > width:
+    #   colide player
+    if (ballrect.left == player_rect.right and (ballrect.bottom >= player_rect.top and ballrect.top <= player_rect.bottom) )or  ballrect.colliderect(enemy_rect) or ballrect.right > width:
         speed[0] = -speed[0]
     if ballrect.top < 0 or ballrect.bottom > height:
         speed[1] = -speed[1]
